@@ -1,86 +1,101 @@
+from rest_framework.generics import ListAPIView
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from django.contrib.auth import get_user_model
 User = get_user_model()
 
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework import permissions
-from rest_framework.generics import ListAPIView
-from rest_framework.decorators import api_view
+from .models import Subject, Student, Teacher
+from .serializers import SubjectsViewSerializer
 
-from .serializers import SubjectSerializer
-from .models import Subject, Teacher, Student
-
-# Create your views here.
-
-class TeacherSignupView(APIView):
-
-    def post(self, request, format=None):
-        data = self.request.data
-
-        firstName = data['firstName']
-        lastName = data['lastName']
-        email = data['email']
-        password = data['password']
-        password2 = data['password2']
-        ids = data['subjects']
-
-        if password==password2:
-            if User.objects.filter(email=email).exists():
-                return Response({'error':'Email already exists'})
-            else:
-                if len(password) < 6:
-                    return Response({'error':'Password must be atleast 6 characters'})
-                else:
-                    user = User.objects.create_user(email=email, password = password, firstName=firstName, lastName = lastName)
-
-                    for id in ids:
-                        current = Subject.objects.get(pk=id)
-                        user.subjects.add(current)
-                    
-                    user.is_teacher = True
-                    user.save()
-                    Teacher.objects.create(user=user)
-                    
-                    return Response({'success':'Teacher account created successfully'})
-        else:
-            return Response({'error': 'Passwords do not match'})
-
-class StudentSignupView(APIView):
-
-    def post(self, request, format=None):
-        data = self.request.data
-
-        firstName = data['firstName']
-        lastName = data['lastName']
-        email = data['email']
-        password = data['password']
-        password2 = data['password2']
-        ids = data['subjects']
-
-        if password==password2:
-            if User.objects.filter(email=email).exists():
-                return Response({'error':'Email already exists'})
-            else:
-                if len(password) < 6:
-                    return Response({'error':'Password must be atleast 6 characters'})
-                else:
-                    user = User.objects.create_user(email=email, password = password, firstName=firstName, lastName = lastName)
-
-                    for id in ids:
-                        current = Subject.objects.get(pk=id)
-                        user.subjects.add(current)
-                    
-                    user.is_student = True
-                    user.save()
-                    Student.objects.create(user=user)
-
-                    return Response({'success':'Student account created successfully'})
-        else:
-            return Response({'error': 'Passwords do not match'})
-
+# Functional views here.
 
 @api_view(['GET'])
-def SubjectListView(request):
+def SubjectListView(request,pk):
     subjects = Subject.objects.all()
-    serializer = SubjectSerializer(subjects, many=True)
+    serializer = SubjectsViewSerializer(subjects, many=True)
     return Response(serializer.data)
+
+@api_view(['GET'])
+def studentSubCoursesView(request,pk):
+    myCourses = Student.objects.get(user_id=pk).subjects.all()
+    serializer = SubjectsViewSerializer(myCourses, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def studentNotSubCoursesView(request,pk):
+    allCourses = Subject.objects.all()
+    myCourses = Student.objects.get(user_id=pk).subjects.all()
+    remCourses = allCourses.difference(myCourses)
+    serializer = SubjectsViewSerializer(remCourses, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def teacherSubCoursesView(request,pk):
+    myCourses = Teacher.objects.get(user_id=pk).subjects.all()
+    serializer = SubjectsViewSerializer(myCourses, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def teacherNotSubCoursesView(request,pk):
+    allCourses = Subject.objects.all()
+    myCourses = Teacher.objects.get(user_id=pk).subjects.all()
+    remCourses = allCourses.difference(myCourses)
+    serializer = SubjectsViewSerializer(remCourses, many=True)
+    return Response(serializer.data)
+
+
+
+# Class based views here 
+
+class StudentSubjectsUpdateView(APIView): # For updating student subjects
+
+    def post(self, request, pk):
+        data = self.request.data
+
+        courses = data['chosenSubjects']
+
+        student = Student.objects.get(user_id=pk)
+
+        student.subjects.clear()
+
+        for course_id in courses:
+            subject = Subject.objects.get(id=course_id)
+            student.subjects.add(subject)
+
+        student.save()
+
+        return Response({"Success" : "Changed courses for user"})
+
+class TeacherSubjectsUpdateView(APIView):
+        
+    def post(self,request,pk):
+        data = self.request.data
+        courses = data['chosenSubjects']
+        teacher = Teacher.objects.get(user_id=pk)
+
+        teacher.subjects.clear()
+
+        for course_id in courses:
+            subject = Subject.objects.get(id=course_id)
+            teacher.subjects.add(subject)
+
+        teacher.save()
+
+        return Response({"Success" : "Changed courses for teacher"})
+
+class MakeTeacher(APIView):
+    
+    def post(self, request, pk):
+        user = User.objects.get(id=pk)
+
+        if user.is_teacher == False :
+            Teacher.objects.create(user=user)
+
+        user.is_teacher = True
+        user.save()
+
+        return Response({"success" : "Teacher Permissions Unlocked!"})
+
+

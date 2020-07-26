@@ -20,7 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'skt#0ww0!r(vo&+)z!-fbbmuyh=2+jp6!(dksd2$pk$v!wjnhk'
+SECRET_KEY = 'ap&t^k9k%ob58^kt6+i-i4-nmcp6+rw1&4ou7pxlmv9+sh^!%6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -39,10 +39,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'accounts',
     'rest_framework',
+    'djoser',
     'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -84,6 +86,14 @@ DATABASES = {
 }
 
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'lost.ghoul.pubg@gmail.com'
+EMAIL_HOST_PASSWORD = 'ylklpvayxvdqawsc'
+EMAIL_USE_TLS = True
+
+
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
 
@@ -122,17 +132,46 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-AUTH_USER_MODEL = 'accounts.UserAccount'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'build/static')
+]
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES':[
+    'DEFAULT_PERMISSION_CLASSES' : [
         'rest_framework.permissions.AllowAny',
     ],
-    'DEFAULT_AUTHENTICATION_CLASSES':[
-        'rest_framework_simplejwt.authentication.JWTAuthentication'
-    ],
-    'DEFAULT_PAGINATION_CLASS' : 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE ' : 3
+    'DEFAULT_AUTHENTICATION_CLASSES' : (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
 }
 
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES' :  ('JWT',),
+}
+
+DJOSER = {
+    'LOGIN_FIELD' : 'email',
+    'USER_CREATE_PASSWORD_RETYPE' : True,
+    'USERNAME_CHANGED_EMAIL_CONFIRMATION' : True,
+    'PASSWORD_CHANGED_EMAIL_CONFIRMATION' : True,
+    'SEND_CONFIRMATION_EMAIL' : True,
+    'SET_USERNAME_RETYPE' : True,
+    'SET_PASSWORD_RETYPE' : True,
+    'PASSWORD_RESET_CONFIRM_URL' : 'password/reset/confirm/{uid}/{token}',
+    'USERNAME_RESET_CONFIRM_URL' : 'email/reset/confirm/{uid}/{token}',
+    'SERIALIZERS' : {
+        'user_create' : 'accounts.serializers.UserCreateSerializer',
+        'user' : 'accounts.serializers.UserCreateSerializer',
+        'user_delete' : 'djoser.serializers.UserDeleteSerializer',
+    },
+}
+
+
+AUTH_USER_MODEL = 'accounts.UserAccount'
+
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
+
+ACCESS_CONTROL_ALLOW_ORIGIN = 'http://localhost:3000'
