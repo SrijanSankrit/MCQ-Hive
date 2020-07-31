@@ -1,10 +1,9 @@
 import React, {useState} from 'react';
 import {connect} from 'react-redux';
-import {signup} from '../actions/auth';
+import {signup} from '../../actions/auth';
 import PropTypes from 'prop-types';
 import {Redirect} from 'react-router-dom';
-import Navbar from '../components/Navbar';
-
+import axios from 'axios';
 
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
@@ -37,7 +36,7 @@ import Container from '@material-ui/core/Container';
     },
   }));
 
-const StudentSignup = ({signup, isAuthenticated, user}) =>  {
+const TeacherSignup = ({signup, isAuthenticated, user}) =>  {
 
     const classes = useStyles();
 
@@ -47,13 +46,34 @@ const StudentSignup = ({signup, isAuthenticated, user}) =>  {
         email : '',
         password : '',
         password2 : '',
-        subjects : [],
     });
 
     const {firstName, lastName, email, password, password2} = formData;
 
+    const makeTeacher = async () => {
+        const config = {
+            headers : {
+                "Content-type" : "application/json"
+            }
+        };
 
-    if(isAuthenticated && user !== null) return (<Redirect to="/" />) /* If someone tries to access signup page , redirect to homepage. */
+        try{
+            await axios.post(`${process.env.REACT_APP_API_URL}/api/accounts/teacher/add/${user.id}/`, config);
+
+            return new Response({"Success" : "Became a Teacher"})
+        } catch(err){
+            return new Response({"Error" : "Cannot make Teacher!"});
+        }
+    };
+
+
+    if(isAuthenticated && user !== null) {
+        // Call a function to update a user to be a teacher
+
+        makeTeacher();
+
+        return (<Redirect to={`/teacher/${user.id}`} />);
+    }
 
 
     const onChange = e => {
@@ -66,14 +86,12 @@ const StudentSignup = ({signup, isAuthenticated, user}) =>  {
     const onSubmit = e => {
         e.preventDefault();
         const is_student = "True";
-        const is_teacher = "False";
+        const is_teacher = "True";
         signup(email, firstName, lastName, password, password2, is_student, is_teacher);
 
     };
 
     return (
-            <React.Fragment>
-                <Navbar />
             <Container component="main" maxWidth="xs">
                 <CssBaseline />
                 <div className={classes.paper}>
@@ -81,7 +99,7 @@ const StudentSignup = ({signup, isAuthenticated, user}) =>  {
                     <LockOutlinedIcon />
                     </Avatar>
                     <Typography component="h1" variant="h5">
-                    Sign up
+                    Sign up as Teacher
                     </Typography>
                     <form className={classes.form} onSubmit={onSubmit}>
                     <Grid container spacing={2}>
@@ -165,25 +183,24 @@ const StudentSignup = ({signup, isAuthenticated, user}) =>  {
                     <Grid container justify="flex-end">
                         <Grid item>
                         <Link href="/login" variant="body2">
-                            Already have an account? Sign in
+                            Already have an account? Log in
                         </Link>
                         </Grid>
                     </Grid>
                     </form>
                 </div>
             </Container>
-        </React.Fragment>
     )
 }
 
-StudentSignup.propTypes = {
+TeacherSignup.propTypes = {
     isAuthenticated : PropTypes.bool,
     signup : PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
     isAuthenticated : state.auth.isAuthenticated,
-
+    user : state.auth.user,
 })
 
-export default connect(mapStateToProps, {signup})(StudentSignup);
+export default connect(mapStateToProps, {signup})(TeacherSignup);

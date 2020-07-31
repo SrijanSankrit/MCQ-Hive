@@ -1,54 +1,48 @@
 import React, {useState, useEffect} from 'react';
 import axios from 'axios';
-import {Link} from 'react-router-dom';
-import TeacherNav from '../components/TeacherNav';
+import {connect} from 'react-redux';
+import {Redirect} from 'react-router-dom';
 
-import { Button } from '@material-ui/core';
+import { Button} from '@material-ui/core';
 
-const TeacherCourses =  ({match}) => {
+const StudentCourses =  ({match, isAuthenticated}) => {
 
     const id = match.params.id;
     const [myCourses, setMyCourses] = useState([]);
     const [remCourses, setRemCourses] = useState([]);
 
-    const fetchRemCourses = async () => {
-
-        const config = {
-            headers : {
-                "Content-type" : "application/json",
-            }
-        };
-        try{
-            const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/accounts/teacher/subjects/unsubscribed/${id}/`, config);
-            setRemCourses(res.data);
-        }catch(err){
-            
-        }
-    };
-
-    const fetchMyCourses = async () => {
-        const config = {
-            headers : {
-                "Content-type" : "application/json",
-            }
-        };
-
-        try{
-            const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/accounts/teacher/subjects/subscribed/${id}/`, config);
-            setMyCourses(res.data);
-        } catch(err) {
-
-        }
-
-    };
-
-
-
     useEffect(() => {
+        const fetchRemCourses = async () => {
+            const config = {
+                headers : {
+                    "Content-type" : "application/json",
+                }
+            };
+            try{
+                const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/accounts/student/subjects/unsubscribed/${id}/`, config);
+                setRemCourses(res.data);
+            }catch(err){}
+        };
+    
+        const fetchMyCourses = async () => {
+            const config = {
+                headers : {
+                    "Content-type" : "application/json",
+                }
+            };
+            try{
+                const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/accounts/student/subjects/subscribed/${id}/`, config);
+                setMyCourses(res.data);
+            } catch(err) {}
+        };
+
+
         fetchRemCourses(); /* Fetch All Courses  */
         fetchMyCourses(); /* Fetch User's Courses */
         
-    },[]);
+    },[id, myCourses]);
+
+    if( !isAuthenticated) return (<Redirect to="/login" />)
 
     const ListMyCourses = myCourses.map(course => (<div key={course.id}><input type="checkbox" id={course.id} defaultChecked />  {course.name}</div>));
     const ListNotMyCourses = remCourses.map(course => (<div key={course.id}><input type="checkbox" id={course.id} />  {course.name}</div>));
@@ -67,9 +61,9 @@ const TeacherCourses =  ({match}) => {
         });
 
         try{
-            await axios.post(`${process.env.REACT_APP_API_URL}/api/accounts/teacher/subjects/update/${id}/`, body,config);
+            await axios.post(`${process.env.REACT_APP_API_URL}/api/accounts/student/subjects/update/${id}/`, body,config);
 
-            return new Response({"Success" : "TeacherSubjects Updated"});
+            return new Response({"Success" : "Student Subjects Updated"});
 
         } catch(err) {
             return new Response({"Error" : "Not able to update courses"});
@@ -95,7 +89,6 @@ const TeacherCourses =  ({match}) => {
 
     return (
         <div>
-            <TeacherNav />
             <h3>Courses Taken:</h3>
             <div>{ListMyCourses}</div> <br /><hr />
             <h3>Courses you can try:</h3>
@@ -106,10 +99,14 @@ const TeacherCourses =  ({match}) => {
             color="primary"
             onClick={saveCourses}
             >
-                <Link to="/">Save</Link>
+                Save
             </Button>
         </div>
     )
 }
 
-export default TeacherCourses;
+const matchStateToProps = state => ({
+    isAuthenticated : state.auth.isAuthenticated,
+})
+
+export default connect(matchStateToProps)(StudentCourses);

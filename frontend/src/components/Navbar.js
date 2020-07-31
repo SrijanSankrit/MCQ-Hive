@@ -3,13 +3,17 @@ import {connect} from 'react-redux';
 import {logout} from '../actions/auth';
 import propTypes from 'prop-types';
 
-import {AppBar, Toolbar, Typography, makeStyles, Link} from '@material-ui/core';
+import {AppBar, Toolbar, Typography, makeStyles} from '@material-ui/core';
 import Button from '@material-ui/core/Button';
 import Avatar from '@material-ui/core/Avatar';
 import { deepOrange, deepPurple } from '@material-ui/core/colors';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import LaunchIcon from '@material-ui/icons/Launch';
+
+import {Link}from 'react-router-dom';
+
+
 
 
 const useStyles = makeStyles((theme) =>({
@@ -36,7 +40,8 @@ const useStyles = makeStyles((theme) =>({
     })
 ) 
 
-const Navbar = ({auth : {isAuthenticated, loading, user}, logout }) => {
+const Navbar = ({auth : {isAuthenticated, loading, user}, logout}) => {
+
     const classes = useStyles();
 
     /* for the Avatar Menu */
@@ -57,7 +62,7 @@ const Navbar = ({auth : {isAuthenticated, loading, user}, logout }) => {
     /*  Avatar menu state END */
 
     const guestLinks = (<Fragment>
-                        <Link variant="button" color="textPrimary" href="/signup/teacher" className={classes.link}>
+                        <Link variant="button" color="textPrimary" to="/signup/teacher" className={classes.link}>
                           Sign up as Teacher
                         </Link>
                         <Button href="/signup/student" color="primary" variant="outlined" className={classes.link}>SignUp</Button>
@@ -66,12 +71,12 @@ const Navbar = ({auth : {isAuthenticated, loading, user}, logout }) => {
                         
 
     const authLinks = (<Fragment>
-                        { (user!== null && user.is_teacher) ?  (<Link variant="button" color="textPrimary" href={`/teacher/${user.id}`}>Teacher</Link>) : 
-                             <Link variant="button" color="textPrimary" href="/signup/teacher" >Become a Teacher</Link>
+                        { (user!== null && user.is_teacher) ?  (<Link variant="button" color="textPrimary" to="/teacher/dashboard">Teacher</Link>) : 
+                             <Link variant="button" color="textPrimary" to="/signup/teacher" >Become a Teacher</Link>
                         }
 
                           {(user!== null) && (<Fragment>
-                              <Link variant="button" color="textPrimary" className={classes.link} href={`/student/courses/${user.id}`} >My Courses</Link>
+                              <Link variant="button" color="textPrimary" className={classes.link} to={`/student/courses/${user.id}`} >My Courses</Link>
  
                               <Button aria-controls="simple-menu" aria-haspopup="true" onClick={handleClick}>
                               <Avatar className={classes.purple}>{avatar}</Avatar>
@@ -83,15 +88,17 @@ const Navbar = ({auth : {isAuthenticated, loading, user}, logout }) => {
                                 open={Boolean(anchorEl)}
                                 onClose={handleClose}
                               >
-                              <MenuItem href="#" >My Profile</MenuItem>
-                              <MenuItem href={`/student/courses/${user.id}`} >My Courses</MenuItem>
+                              <MenuItem><Link to="/" onClick={handleClose}>My Profile</Link></MenuItem>
+                              <MenuItem><Link underline="none" to={`/student/courses/${user.id}`} >My Courses</Link></MenuItem>
+                              <MenuItem><Link to="/student/attempted-quizzes">Attempted Quizzes</Link></MenuItem>
     
                               <hr/>
     
-                              {user.is_teacher && (<Fragment><MenuItem href={`/teacher/${user.id}`}>Teacher Dashboard</MenuItem><hr /></Fragment>)  }
+                              {user.is_teacher && (<Fragment><Link to={`/teacher/${user.id}`}>Teacher Dashboard</Link><hr /></Fragment>)  }
     
+
                               <MenuItem >Help</MenuItem>
-                              <MenuItem onClick={logout}><Link href="/">Log Out</Link></MenuItem>
+                              <MenuItem onClick={logout}><Link to="/">Log Out</Link></MenuItem>
                               <hr />
                               <MenuItem href="#" >
                                 <div>
@@ -110,10 +117,10 @@ const Navbar = ({auth : {isAuthenticated, loading, user}, logout }) => {
         <AppBar position="static" color="default" elevation={0} className={classes.appBar}>
         <Toolbar className={classes.toolbar}>
           <Typography variant="h6" color="inherit" noWrap className={classes.toolbarTitle}>
-            <Link href="/">MCQ Hive</Link>
+            <Link to="/">MCQ Hive</Link>
           </Typography>
           <nav>  
-            <Fragment><Link variant="button" color="textPrimary" href="#" className={classes.link}>
+            <Fragment><Link variant="button" color="textPrimary" to="#!" className={classes.link}>
               MCQ Hive For Business
             </Link>
             </Fragment>
@@ -130,7 +137,7 @@ Navbar.propTypes = {
 }
 
 const mapStateToProps = (state) => ({
-    auth : state.auth,
+    auth : state.auth
 });
 
 export default connect(mapStateToProps, {logout})(Navbar);

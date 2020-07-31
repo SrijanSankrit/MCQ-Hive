@@ -3,7 +3,6 @@ import {Redirect} from 'react-router-dom';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {login} from '../actions/auth';
-import Navbar from '../components/Navbar';
 
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
@@ -60,7 +59,6 @@ const Login = ({login, isAuthenticated}) => {
     if(isAuthenticated) return <Redirect to='/' />
     
     return (
-      <React.Fragment><Navbar />
       <Container component="main" maxWidth="xs">
         <CssBaseline />
         <div className={classes.paper}>
@@ -123,8 +121,7 @@ const Login = ({login, isAuthenticated}) => {
             </Grid>
           </form>
         </div>
-      </Container> 
-    </React.Fragment>    
+      </Container>   
     )
 };
 

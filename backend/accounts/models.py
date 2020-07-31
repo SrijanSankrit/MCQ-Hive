@@ -73,11 +73,16 @@ class Teacher(models.Model):
     def __str__(self):
         return self.user.get_full_name()
 
+# All quizzes of a teacher can be accessed by Quiz.objects.filter(owner_id = teacher_id)
     
 class Student(models.Model):
+
     user = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
     subjects = models.ManyToManyField(Subject, blank=True)
 
     def __str__(self):
         return self.user.firstName
 
+# Taken quizzes can be found here
+# new quizzes can be found for every subject by 
+# Quiz.objects.filter(subject=subject).subtract(Student.objects.get(id=id).takenQuizzes.all())
