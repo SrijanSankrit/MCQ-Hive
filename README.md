@@ -4,6 +4,8 @@
 A web platform where experts can share their knowledge in the form of quizzes and students can interact and learn by attempting those quizzes.
 The Website is currently in Beta.
 
+This website is developed from this awesome [Django-React BoilerPlate](https://github.com/SrijanSankrit/django-react-boilerplate).
+
 Following Libraries were used for building this project:
 - [React](https://reactjs.org), for Interactive User Interface.
 - [Material UI](https://material-ui.com), for interactive styling on the Homepage and Profile Page.
